@@ -1,10 +1,23 @@
-import React, { memo } from 'react';
-import { Handle, Position } from 'reactflow';
+import React, { memo, useCallback } from 'react';
+import { Handle, Position, useReactFlow } from 'reactflow';
 import clsx from 'clsx';
 
-export const ShapeNode = memo(({ data, selected }: any) => {
+export const ShapeNode = memo(({ id, data, selected }: any) => {
+    const { setNodes } = useReactFlow();
     const shape = data.shape || 'rectangle';
     const label = data.label || '';
+
+    const onLabelChange = useCallback((evt: any) => {
+        const newLabel = evt.target.innerText;
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id === id) {
+                    node.data = { ...node.data, label: newLabel };
+                }
+                return node;
+            })
+        );
+    }, [id, setNodes]);
 
     // Basic styles for different shapes
     const shapeStyles: Record<string, string> = {
@@ -23,9 +36,9 @@ export const ShapeNode = memo(({ data, selected }: any) => {
             shapeStyles[shape] || 'rounded-md'
         )}>
             <div className={clsx(
-                "text-white text-sm font-medium text-center outline-none",
+                "text-white text-sm font-medium text-center outline-none w-full h-full flex items-center justify-center bg-transparent",
                 shape === 'diamond' ? '-rotate-45' : ''
-            )} contentEditable suppressContentEditableWarning>
+            )} contentEditable suppressContentEditableWarning onInput={onLabelChange}>
                 {label}
             </div>
 
@@ -38,7 +51,21 @@ export const ShapeNode = memo(({ data, selected }: any) => {
     );
 });
 
-export const TextNode = memo(({ data, selected }: any) => {
+export const TextNode = memo(({ id, data, selected }: any) => {
+    const { setNodes } = useReactFlow();
+
+    const onLabelChange = useCallback((evt: any) => {
+        const newLabel = evt.target.innerText;
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id === id) {
+                    node.data = { ...node.data, label: newLabel };
+                }
+                return node;
+            })
+        );
+    }, [id, setNodes]);
+
     return (
         <div className={clsx(
             "p-2 min-w-[150px] transition-all border border-transparent hover:border-white/10 rounded",
@@ -48,6 +75,7 @@ export const TextNode = memo(({ data, selected }: any) => {
                 className="text-white text-lg font-medium outline-none bg-transparent"
                 contentEditable
                 suppressContentEditableWarning
+                onInput={onLabelChange}
             >
                 {data.label || "Type something..."}
             </div>

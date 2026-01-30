@@ -5,6 +5,9 @@ import { NextResponse } from "next/server";
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 
+export const runtime = 'nodejs'; // Force Node.js runtime to avoid SES/Edge issues
+
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();

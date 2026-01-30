@@ -20,15 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} antialiased bg-black text-white`}>
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="bg-video fixed top-0 left-0 w-full h-full object-cover -z-10 opacity-40"
-        >
-          <source src="/background.mp4" type="video/mp4" />
-        </video>
+
         <div className="relative z-10 w-full h-full">
           {children}
         </div>
