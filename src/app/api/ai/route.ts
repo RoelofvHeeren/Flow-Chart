@@ -13,9 +13,8 @@ export async function POST(req: Request) {
         // Construct context
         const flowContext = currentFlow ? `Current Flow State: ${JSON.stringify(currentFlow)}` : "No existing flow.";
 
-        // Use Gemini 2.0 Flash or 1.5 Pro (Using 1.5 Pro as safe default for complex logic, or 'gemini-2.0-flash-exp' if available and preferred)
-        // Going with gemini-1.5-pro for stability in complex JSON tasks, or user's requested 2.0 flash
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        // Use Gemini 2.0 Flash Exp as requested for better performance
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
         const fullPrompt = `${SYSTEM_PROMPT}\n\nContext: ${flowContext}\n\nUser Instruction: ${prompt}\n\nTask: Generate or modify the flowchart JSON structure (nodes and edges). Return ONLY valid JSON format with keys "nodes" and "edges". Do not use markdown code blocks.`;
 

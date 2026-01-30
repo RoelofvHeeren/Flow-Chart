@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { Mic, Send, MicOff, Loader2 } from "lucide-react";
+import { Mic, Send, MicOff, Loader2, Save } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
@@ -97,12 +97,12 @@ export default function CommandBar() {
 
     return (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
-            <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex gap-2 shadow-2xl items-center">
+            <div className="bg-white/90 backdrop-blur-xl border border-white/20 rounded-2xl p-2 flex gap-2 shadow-2xl items-center">
                 <button
                     onClick={toggleListening}
                     className={`p-3 rounded-xl transition-colors border group ${isListening
-                            ? "bg-red-500/20 text-red-500 border-red-500/30 animate-pulse"
-                            : "bg-white/5 hover:bg-teal-accent/20 text-teal-accent border-white/5 hover:border-teal-accent/30"
+                        ? "bg-red-500 text-white animate-pulse"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700 border-transparent"
                         }`}
                 >
                     {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />}
@@ -113,7 +113,7 @@ export default function CommandBar() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
                     disabled={isLoading}
-                    className="flex-1 bg-transparent border-none text-white placeholder-gray-500 focus:ring-0 px-2 font-medium outline-none"
+                    className="flex-1 bg-transparent border-none text-black placeholder-gray-500 focus:ring-0 px-2 font-medium outline-none"
                     placeholder={isListening ? "Listening..." : "Describe a flow or say 'Add a trigger'..."}
                 />
 
@@ -123,6 +123,25 @@ export default function CommandBar() {
                     className="p-3 rounded-xl bg-teal-accent hover:bg-teal-600 text-white transition-colors shadow-lg shadow-teal-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                </button>
+                <button
+                    onClick={async () => {
+                        try {
+                            const res = await fetch('/api/flows', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ nodes, edges })
+                            });
+                            if (res.ok) alert('Flow saved!');
+                            else throw new Error('Failed to save');
+                        } catch (e) {
+                            console.error(e);
+                            alert('Error saving flow');
+                        }
+                    }}
+                    className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors border-transparent"
+                >
+                    <Save className="w-5 h-5" />
                 </button>
             </div>
         </div>

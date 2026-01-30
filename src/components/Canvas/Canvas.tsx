@@ -20,14 +20,37 @@ const selector = (state: any) => ({
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
     addNode: state.addNode,
+    setNodes: state.setNodes,
+    setEdges: state.setEdges,
+    flowId: state.flowId,
 });
 
 function CanvasContent() {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode } = useStore(useShallow(selector));
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, setNodes, setEdges, flowId } = useStore(useShallow(selector));
     useSocket(); // Initialize socket listeners
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+
+    // Load saved flow on mount
+    React.useEffect(() => {
+        const loadFlow = async () => {
+            if (!flowId) return;
+            try {
+                const res = await fetch(`/api/flows/${flowId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data) {
+                        if (data.nodes) setNodes(data.nodes);
+                        if (data.edges) setEdges(data.edges);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load flow", e);
+            }
+        };
+        loadFlow();
+    }, [flowId, setNodes, setEdges]);
 
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
@@ -38,11 +61,31 @@ function CanvasContent() {
         (event: React.DragEvent) => {
             event.preventDefault();
 
-            const type = event.dataTransfer.getData('application/reactflow');
+            const dragDataString = event.dataTransfer.getData('application/reactflow');
 
             // check if the dropped element is valid
-            if (typeof type === 'undefined' || !type) {
+            if (typeof dragDataString === 'undefined' || !dragDataString) {
                 return;
+            }
+
+            let type = dragDataString;
+            let data: any = { label: `${type} node` };
+
+            try {
+                const parsed = JSON.parse(dragDataString);
+                if (typeof parsed === 'object' && parsed !== null) {
+                    type = parsed.type;
+                    // If specific shape data is passed, merge it into node data
+                    if (parsed.data) {
+                        data = { ...data, ...parsed.data };
+                        // Update label if shape is present
+                        if (parsed.data.shape) {
+                            data.label = ""; // Visual shapes usually don't have "shape node" text by default, or maybe just empty
+                        }
+                    }
+                }
+            } catch (e) {
+                // Not JSON, continue with string as type
             }
 
             const position = reactFlowInstance.screenToFlowPosition({
@@ -53,7 +96,7 @@ function CanvasContent() {
                 id: `${type}-${Date.now()}`,
                 type,
                 position,
-                data: { label: `${type} node` },
+                data: data,
             };
 
             addNode(newNode);
